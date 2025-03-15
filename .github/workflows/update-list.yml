@@ -1,26 +1,32 @@
 name: Update Image List
+
 on:
   push:
     paths:
-      - 'images/**'
+      - 'images/**'  # 仅当 images 目录内容变化时触发
+
+# 关键：在顶层全局声明权限
+permissions:
+  contents: write  # 允许工作流写入仓库内容（推送代码）
 
 jobs:
-  build:
+  update-list:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Generate JSON
+      - name: Checkout Code
+        uses: actions/checkout@v4  # 使用最新版本
+        with:
+          fetch-depth: 0  # 拉取完整提交历史
+
+      - name: Generate List
         run: |
-          # 不再切换目录，直接在根目录操作
-          echo '{"images": [' > list.json
-          ls -1 images/*.jpg images/*.png | awk -F/ '{printf "\"%s\",", $2}' >> list.json
-          sed -i '$ s/,$//' list.json
-          echo ']}' >> list.json
-      - name: Commit Changes
+          # 生成 list.json 的脚本
+
+      - name: Commit & Push
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add list.json  # 正确添加根目录下的文件
-          git commit -m "Update image list"
-          git pull --rebase origin main
+          git add list.json
+          git commit -m "Auto Update List"
+          git pull --rebase origin main  # 同步最新代码
           git push origin main
