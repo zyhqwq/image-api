@@ -2,7 +2,7 @@ name: Update Image List
 on:
   push:
     paths:
-      - 'images/**'  # 当 images 文件夹内容变化时触发
+      - 'images/**'
 
 jobs:
   build:
@@ -11,15 +11,16 @@ jobs:
       - uses: actions/checkout@v3
       - name: Generate JSON
         run: |
-          cd images
-          echo '{"images": [' > ../list.json
-          ls -1 *.jpg *.png | awk '{printf "\"%s\",", $1}' >> ../list.json
-          sed -i '$ s/,$//' ../list.json  # 去除末尾逗号
-          echo ']}' >> ../list.json
+          # 不再切换目录，直接在根目录操作
+          echo '{"images": [' > list.json
+          ls -1 images/*.jpg images/*.png | awk -F/ '{printf "\"%s\",", $2}' >> list.json
+          sed -i '$ s/,$//' list.json
+          echo ']}' >> list.json
       - name: Commit Changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add ../list.json
+          git add list.json  # 正确添加根目录下的文件
           git commit -m "Update image list"
-          git push
+          git pull --rebase origin main
+          git push origin main
