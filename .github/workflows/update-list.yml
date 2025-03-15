@@ -5,7 +5,6 @@ on:
     paths:
       - 'images/**'  # 仅当 images 目录内容变化时触发
 
-# 关键：在顶层全局声明权限
 permissions:
   contents: write  # 允许工作流写入仓库内容（推送代码）
 
@@ -21,6 +20,14 @@ jobs:
       - name: Generate List
         run: |
           # 生成 list.json 的脚本
+          echo '[]' > list.json  # 替换为生成 list.json 的实际脚本
+
+      - name: Check list.json existence
+        run: |
+          if [ ! -f list.json ]; then
+            echo "list.json not found!"
+            exit 1
+          fi
 
       - name: Commit & Push
         run: |
