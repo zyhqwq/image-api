@@ -1,0 +1,25 @@
+name: Update Image List
+on:
+  push:
+    paths:
+      - 'images/**'  # 当 images 文件夹内容变化时触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate JSON
+        run: |
+          cd images
+          echo '{"images": [' > ../list.json
+          ls -1 *.jpg *.png | awk '{printf "\"%s\",", $1}' >> ../list.json
+          sed -i '$ s/,$//' ../list.json  # 去除末尾逗号
+          echo ']}' >> ../list.json
+      - name: Commit Changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add ../list.json
+          git commit -m "Update image list"
+          git push
